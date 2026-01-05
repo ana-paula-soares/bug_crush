@@ -1,18 +1,16 @@
 module Types where
 
--- O inseto (peça do jogo)
-data Bug = Red | Blue | Green | Yellow | Purple | Empty
+-- Tipos de Doces
+data Candy = Red | Blue | Green | Yellow | Purple | Empty
     deriving (Eq, Show)
 
--- O tabuleiro 
-type Board = [[Bug]]
+-- O Tabuleiro
+type Board = [[Candy]]
 
--- A coordenada da peça
-type Coordinate = (Int, Int)
+-- Coordenadas (Linha, Coluna)
+type Coord = (Int, Int)
 
--- O estado do jogo 
-data GameState = GameState {
-    board :: Board,
-    score :: Int,
-    movesLeft :: Int
-} deriving (Show)
+-- Constantes Globais
+width, height :: Int
+width = 8
+height = 8
