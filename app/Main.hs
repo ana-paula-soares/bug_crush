@@ -7,7 +7,7 @@ import Control.Concurrent (threadDelay)
 import Types
 import Board (generateBoard)
 import Render (printBoard)
-import GameLogic (swap, findMatches, clearMatches, isValidMove, stepGravity, fixInitialMatches)
+import GameLogic (swap, findMatches, clearMatches, isValidMove, stepGravity, fixInitialMatches, points, detectGroups)
 import UI (telaInicial,menuInicial,telaRegras,telaInstrucoes,telaLogin,renderHUD,limparTela,telaGameOver)
 
 -- Loop de Animação de Queda
@@ -19,19 +19,43 @@ animateFall board = do
     if moved then animateFall nextBoard else return board
 
 -- Loop de Resolução de Cascata
-resolveCascades :: Board -> IO Board
-resolveCascades board = do
-    let matches = findMatches board
-    if null matches
-        then return board
+resolveCascades :: Board -> Int -> IO (Board, Int)
+resolveCascades board comboMultiplier = do
+    let groups = detectGroups board
+
+    if null groups
+        then return (board, 0)
         else do
-            let cleared = clearMatches board matches
+            let -- 1. Pontuação base: soma simples dos grupos atuais
+                basePts = sum (map points groups)
+                
+                -- 2. O bónus só existe se comboMultiplier > 0 (ou seja, se já houve uma queda)
+                multiplicador = if comboMultiplier == 0 
+                                then 1.0 
+                                else 1.0 + (0.5 * fromIntegral comboMultiplier)
+                
+                totalDaRodada = round (fromIntegral basePts * multiplicador)
+                
+                -- Limpa todas as peças que deram match
+                allCoords = concat groups
+                cleared = clearMatches board allCoords
+
             printBoard cleared
-            putStrLn "\n   >>> BOOM! <<<"
-            threadDelay 800000 -- 0.8s
             
+            -- Feedback visual diferenciado
+            if comboMultiplier == 0
+                then putStrLn $ "\n   >>> EXPLOSÃO! +" ++ show totalDaRodada ++ " pts <<<"
+                else putStrLn $ "\n   >>> CASCATA COMBO x" ++ show (comboMultiplier + 1) ++ "! +" ++ show totalDaRodada ++ " pts <<<"
+            
+            threadDelay 800000 
+            
+            -- 3. ANTES de aumentar o multiplicador, as peças CAEM
             stableBoard <- animateFall cleared
-            resolveCascades stableBoard
+            
+            -- 4. Agora sim, chamamos recursivamente com multiplicador + 1
+            (finalBoard, pontosDasCascatas) <- resolveCascades stableBoard (comboMultiplier + 1)
+            
+            return (finalBoard, totalDaRodada + pontosDasCascatas)
 
 -- Input do Usuário
 getUserInput :: IO (Maybe (Coord, Coord))
@@ -88,11 +112,11 @@ gameLoop nome pontos movimentos board = do
                                     threadDelay 1000000
                                     gameLoop nome pontos movimentos board
                                 else do
-                                    finalBoard <- resolveCascades swapped
+                                    (finalBoard, finalPoints) <- resolveCascades swapped 0
                             
                                     --PLACEHOLDER DA PONTUAÇÃO:
                                     --No momentos os pontos não são calculados
-                                    let novosPontos = pontos 
+                                    let novosPontos = pontos + finalPoints
                             
                                     --PLACEHOLDER DE MOVIMENTOS:
                                     --Cada jogada válida consome exatamente 1 movimento
@@ -131,4 +155,4 @@ loopMenu = do
         2 -> telaRegras  >> loopMenu
         3 -> telaInstrucoes >> loopMenu
         4 -> putStrLn "Saindo do jogo..."
-        _ -> loopMenu    
+        _ -> loopMenu
