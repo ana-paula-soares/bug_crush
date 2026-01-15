@@ -1,4 +1,4 @@
-# BUG CRUSH
+# 🪲 BUG CRUSH 🪲
 ## O JOGO DO PROGRAMADOR!
 
 Caro desenvolvedor de software, está cansado de encontrar bugs profissionalmente e agora quer se dedicar a capturá-los por diversão? Este jogo é para você!
@@ -8,8 +8,6 @@ Aqui, você vai ter a experiênciade 'Candy Crush' e vários outros jogos de com
 ---
 
 ### Regras e Metas
-
-As regras são simples:
 * Utilize 3 comandos  para deslocar os insetos em um tabuleiro **8x8**;
 * Digite a **linha**, a **coluna**, e **w a s d** para os movimentos;
 * Ex.: ``1 2 s`` (desloca a peça da linha 1 e coluna 2 para baixo);
@@ -34,11 +32,12 @@ Você tem que instalar a biblioteca `random` (necessária para gerar os elemento
 
 1. Instale a dependência via Cabal:
 ```bash
-cabal install --lib random
+cabal build
+```
 
 2. Logo em seguida, rode o comando abaixo dentro do diretório raiz do jogo:
 ```bash
-runhaskell -isrc app/Main.hs
+cabal run bug-crush
 ```
 
 E está pronto o sorvetinho! 
