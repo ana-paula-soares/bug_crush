@@ -157,4 +157,3 @@ telaGameOver nome pontos = do
     putStrLn ""
     putStrLn " Pressione [ENTER] para voltar ao menu"
     _ <- getLine
-    return ()
