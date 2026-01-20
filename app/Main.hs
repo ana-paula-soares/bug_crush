@@ -31,11 +31,11 @@ resolveCascades board comboMultiplier = do
                 basePts = sum (map points groups)
                 
                 -- 2. O bónus só existe se comboMultiplier > 0 (ou seja, se já houve uma queda)
-                multiplicador = if comboMultiplier == 0 
+                multiplier = if comboMultiplier == 0 
                                 then 1.0 
                                 else 1.0 + (0.5 * fromIntegral comboMultiplier)
                 
-                totalDaRodada = round (fromIntegral basePts * multiplicador)
+                roundTotal = round (fromIntegral basePts * multiplier)
                 
                 -- Limpa todas as peças que deram match
                 allCoords = concat groups
@@ -45,18 +45,18 @@ resolveCascades board comboMultiplier = do
             
             -- Feedback visual diferenciado
             if comboMultiplier == 0
-                then putStrLn $ "\n   >>> EXPLOSÃO! +" ++ show totalDaRodada ++ " pts <<<"
-                else putStrLn $ "\n   >>> CASCATA COMBO x" ++ show (comboMultiplier + 1) ++ "! +" ++ show totalDaRodada ++ " pts <<<"
+                then putStrLn $ "\n   >>> EXPLOSÃO! +" ++ show roundTotal ++ " pts <<<"
+                else putStrLn $ "\n   >>> CASCATA COMBO x" ++ show (comboMultiplier + 1) ++ "! +" ++ show roundTotal ++ " pts <<<"
             
             threadDelay 800000 
             
-            -- 3. ANTES de aumentar o multiplicador, as peças CAEM
+            -- 3. ANTES de aumentar o multiplier, as peças CAEM
             stableBoard <- animateFall cleared
             
-            -- 4. Agora sim, chamamos recursivamente com multiplicador + 1
-            (finalBoard, pontosDasCascatas) <- resolveCascades stableBoard (comboMultiplier + 1)
+            -- 4. Agora sim, chamamos recursivamente com multiplier + 1
+            (finalBoard, cascadePoints) <- resolveCascades stableBoard (comboMultiplier + 1)
             
-            return (finalBoard, totalDaRodada + pontosDasCascatas)
+            return (finalBoard, roundTotal + cascadePoints)
 
 -- Input do Usuário
 getUserInput :: IO (Maybe (Coord, Coord))
@@ -98,31 +98,31 @@ getUserInput = do
 --aguardando a finalização da lógica de cálculo
 -- Loop Principal do Jogo
 gameLoop :: String -> Int -> Int -> Board -> IO () 
-gameLoop nome pontos movimentos board = do
+gameLoop name points movements board = do
     -- 1. Verifica Condição de Fim de Jogo
-    if movimentos <= 0
-        then gameOverScreen nome pontos -- Exibe fim de jogo e RETORNA (sem chamar menu aqui)
+    if movements <= 0
+        then gameOverScreen name points -- Exibe fim de jogo e RETORNA (sem chamar menu aqui)
         else do
             -- 2. Renderiza a Interface
             clearScreen
-            renderHUD nome pontos movimentos
+            renderHUD name points movements
             printBoard board
             
             -- 3. Pede Input
             input <- getUserInput
             case input of
-                Nothing -> gameOverScreen nome pontos -- Se digitou 'q', encerra
+                Nothing -> gameOverScreen name points -- Se digitou 'q', encerra
                 Just (c1, c2) -> do
                     if not (isValidMove c1 c2) 
                         then do
                             putStrLn "\nMovimento inválido!"
                             threadDelay 1000000
-                            gameLoop nome pontos movimentos board
+                            gameLoop name points movements board
                         else do
                             -- 4. Executa a Troca
                             let swapped = swap board c1 c2
                             clearScreen
-                            renderHUD nome pontos movimentos
+                            renderHUD name points movements
                             printBoard swapped
                             putStrLn "\n   >>> TROCANDO... <<<"
                             threadDelay 1000000 -- 1.0s
@@ -132,28 +132,28 @@ gameLoop nome pontos movimentos board = do
                                 then do
                                     putStrLn "Sem combinação! Voltando..."
                                     threadDelay 1000000
-                                    gameLoop nome pontos movimentos board -- Desfaz o movimento (usa o board original)
+                                    gameLoop name points movements board -- Desfaz o movimento (usa o board original)
                                 else do
                                     -- 6. Resolve a Cascata (Explosões + Gravidade + Pontos)
-                                    -- O '0' é o multiplicador inicial do combo
-                                    (finalBoard, pontosGanhos) <- resolveCascades swapped 0
+                                    -- O '0' é o multiplier inicial do combo
+                                    (finalBoard, gainedPoints) <- resolveCascades swapped 0
                                     
-                                    let novosPontos = pontos + pontosGanhos
-                                    let novosMovimentos = movimentos - 1
+                                    let newPoints = points + gainedPoints
+                                    let newMovements = movements - 1
 
                                     -- 7. Recursão: Chama o próximo turno
-                                    gameLoop nome novosPontos novosMovimentos finalBoard
+                                    gameLoop name newPoints newMovements finalBoard
 
 startGame :: String -> IO ()
-startGame nome = do
+startGame name = do
     rawBoard <- generateBoard
     cleanBoard <- fixInitialMatches rawBoard
     
-    let pontosIniciais = 0
-    let movimentosIniciais = 5 
+    let startPoints = 0
+    let startMovements = 15
     
     -- Inicia o loop do jogo
-    gameLoop nome pontosIniciais movimentosIniciais cleanBoard
+    gameLoop name startPoints startMovements cleanBoard
 
 -- Entrada do Programa
 main :: IO ()
@@ -164,11 +164,11 @@ main = do
 
 menuLoop :: IO ()
 menuLoop = do
-    opcao <- mainMenu
-    case opcao of
+    option <- mainMenu
+    case option of
         1 -> do
-            nome <- loginScreen
-            startGame nome
+            name <- loginScreen
+            startGame name
             menuLoop 
         2 -> rulesScreen >> menuLoop
         3 -> instructionsScreen >> menuLoop
