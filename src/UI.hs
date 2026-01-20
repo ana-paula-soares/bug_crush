@@ -1,4 +1,4 @@
-module UI (limparTela,telaInicial,esperarM,menuInicial,telaLogin,telaRegras,telaInstrucoes,renderHUD,telaGameOver) where
+module UI (clearScreen, initialScreen, waitForM, mainMenu, loginScreen, rulesScreen, instructionsScreen, renderHUD, gameOverScreen) where
 
 import System.IO (hFlush, stdout)
 
@@ -7,15 +7,15 @@ green = "\ESC[32m"
 reset = "\ESC[0m"
 
 -- Limpar a tela do terminal
-limparTela :: IO ()
-limparTela = do
+clearScreen :: IO ()
+clearScreen = do
     putStr "\ESC[2J"
     putStr "\ESC[H"
 
 -- 1. Criação da Tela Inicial
-telaInicial :: IO ()
-telaInicial = do
-    limparTela
+initialScreen :: IO ()
+initialScreen = do
+    clearScreen
     putStrLn $ green ++ "                                            " ++ reset
     putStrLn $ green ++ "  ____  _    _  _____      _____ _____  _    _  _____ _    _ " ++ reset
     putStrLn $ green ++ " |  _ \\| |  | |/ ____|    / ____|  __ \\| |  | |/ ____| |  | |" ++ reset
@@ -26,11 +26,11 @@ telaInicial = do
     putStrLn ""
     --putStrLn $ green ++ "     ~ 🐜 ~ 🐞 ~ 🐝 ~ 🦗 ~ 🕸️ ~" ++ reset
     putStrLn $ green ++ " [ Pressione a tecla 'M' para ir ao Menu Inicial ]" ++ reset
-    esperarM
+    waitForM
 
 --2. Esperar o usuário digitar a entrada válida
-esperarM :: IO ()
-esperarM = do
+waitForM :: IO ()
+waitForM = do
     putStr "> "
     hFlush stdout
     input <- getLine
@@ -38,13 +38,12 @@ esperarM = do
         then return ()
         else do
             putStrLn "Entrada inválida. Aperte 'M' para continuar."
-            esperarM
-
+            waitForM
 
 --3. Criação do Menu Inicial
-menuInicial :: IO Int
-menuInicial = do
-    limparTela
+mainMenu :: IO Int
+mainMenu = do
+    clearScreen
     putStrLn "===================="
     putStrLn "      BUG CRUSH     "
     putStrLn "===================="
@@ -61,12 +60,12 @@ menuInicial = do
         _ -> do
             putStrLn "Opção inválida. Pressione ENTER e tente novamente."
             _ <- getLine
-            menuInicial
+            mainMenu
 
 --4. Criação da tela de login acessada antes de iniciar o jogo
-telaLogin :: IO String 
-telaLogin = do 
-    limparTela
+loginScreen :: IO String 
+loginScreen = do 
+    clearScreen
     putStrLn "===== LOGIN ====="
     putStrLn ""
     putStr "Digite o seu nome: "
@@ -79,9 +78,9 @@ telaLogin = do
     return nome
 
 --5. Exibe a tela com as regras do jogo
-telaRegras :: IO ()
-telaRegras = do
-    limparTela
+rulesScreen :: IO ()
+rulesScreen = do
+    clearScreen
     putStrLn "===== REGRAS ===== "
     putStrLn "1-Troque duas peças vizinhas na horizontal ou na vertical."
     putStrLn "2-Forme combinações de 3 ou mais peças iguais."
@@ -93,9 +92,9 @@ telaRegras = do
     return ()
 
 --5. Exibe as instruções de como o jogador pode realizar uma combinação
-telaInstrucoes :: IO ()
-telaInstrucoes = do
-    limparTela
+instructionsScreen :: IO ()
+instructionsScreen = do
+    clearScreen
     putStrLn "===== INSTRUÇÕES ====="
     putStrLn "Digite as coordenadas das peças para trocar suas posições."
     putStrLn "Formato: linha1 coluna1 linha2 coluna2"
@@ -104,7 +103,6 @@ telaInstrucoes = do
     putStrLn "Pressione [ENTER] para retornar ao Menu Inicial"
     _ <- getLine
     return ()
-
 
 -- Define a largura interna da caixa (sem contar as bordas laterais)
 boxWidth :: Int
@@ -139,9 +137,9 @@ renderHUD nome pontos movimentos = do
     putStrLn ""
 
 --7. Tela de fim de jogo
-telaGameOver :: String -> Int -> IO ()
-telaGameOver nome pontos = do
-    limparTela
+gameOverScreen :: String -> Int -> IO ()
+gameOverScreen nome pontos = do
+    clearScreen
     putStrLn "╔═══════════════════════════════════╗"
     putStrLn "║             FIM DE JOGO           ║"
     putStrLn "╚═══════════════════════════════════╝"

@@ -9,7 +9,7 @@ import Types
 import Board (generateBoard)
 import Render (printBoard)
 import GameLogic (swap, findMatches, clearMatches, isValidMove, stepGravity, fixInitialMatches, points, detectGroups)
-import UI (telaInicial,menuInicial,telaRegras,telaInstrucoes,telaLogin,renderHUD,limparTela,telaGameOver)
+import UI (initialScreen, mainMenu, rulesScreen, instructionsScreen, loginScreen, renderHUD, clearScreen, gameOverScreen)
 
 -- Loop de Animação de Queda
 animateFall :: Board -> IO Board
@@ -101,17 +101,17 @@ gameLoop :: String -> Int -> Int -> Board -> IO ()
 gameLoop nome pontos movimentos board = do
     -- 1. Verifica Condição de Fim de Jogo
     if movimentos <= 0
-        then telaGameOver nome pontos -- Exibe fim de jogo e RETORNA (sem chamar menu aqui)
+        then gameOverScreen nome pontos -- Exibe fim de jogo e RETORNA (sem chamar menu aqui)
         else do
             -- 2. Renderiza a Interface
-            limparTela
+            clearScreen
             renderHUD nome pontos movimentos
             printBoard board
             
             -- 3. Pede Input
             input <- getUserInput
             case input of
-                Nothing -> telaGameOver nome pontos -- Se digitou 'q', encerra
+                Nothing -> gameOverScreen nome pontos -- Se digitou 'q', encerra
                 Just (c1, c2) -> do
                     if not (isValidMove c1 c2) 
                         then do
@@ -121,7 +121,7 @@ gameLoop nome pontos movimentos board = do
                         else do
                             -- 4. Executa a Troca
                             let swapped = swap board c1 c2
-                            limparTela
+                            clearScreen
                             renderHUD nome pontos movimentos
                             printBoard swapped
                             putStrLn "\n   >>> TROCANDO... <<<"
@@ -144,8 +144,8 @@ gameLoop nome pontos movimentos board = do
                                     -- 7. Recursão: Chama o próximo turno
                                     gameLoop nome novosPontos novosMovimentos finalBoard
 
-iniciarJogo :: String -> IO ()
-iniciarJogo nome = do
+startGame :: String -> IO ()
+startGame nome = do
     rawBoard <- generateBoard
     cleanBoard <- fixInitialMatches rawBoard
     
@@ -159,18 +159,18 @@ iniciarJogo nome = do
 main :: IO ()
 main = do
     hSetBuffering stdout NoBuffering
-    telaInicial
-    loopMenu
+    initialScreen
+    menuLoop
 
-loopMenu :: IO ()
-loopMenu = do
-    opcao <- menuInicial
+menuLoop :: IO ()
+menuLoop = do
+    opcao <- mainMenu
     case opcao of
         1 -> do
-            nome <- telaLogin
-            iniciarJogo nome
-            loopMenu 
-        2 -> telaRegras >> loopMenu
-        3 -> telaInstrucoes >> loopMenu
+            nome <- loginScreen
+            startGame nome
+            menuLoop 
+        2 -> rulesScreen >> menuLoop
+        3 -> instructionsScreen >> menuLoop
         4 -> putStrLn "Saindo do jogo..." 
-        _ -> loopMenu
+        _ -> menuLoop
