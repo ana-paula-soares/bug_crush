@@ -70,12 +70,12 @@ loginScreen = do
     putStrLn ""
     putStr "Digite o seu nome: "
     hFlush stdout
-    nome <- getLine
+    name <- getLine
     putStrLn ""
-    putStrLn ("Bem vindo(a), " ++ nome ++ "!")
+    putStrLn ("Bem vindo(a), " ++ name ++ "!")
     putStrLn "Pressione ENTER para iniciar o jogo..."
     _ <- getLine
-    return nome
+    return name
 
 --5. Exibe a tela com as regras do jogo
 rulesScreen :: IO ()
@@ -122,7 +122,7 @@ formatLine label value =
 --restantes, mesmo que a lógica da atualização de pontos e movimentos
 --ainda esteja sendo implementada no módulo de lógica
 renderHUD :: String -> Int -> Int -> IO ()
-renderHUD nome pontos movimentos = do
+renderHUD name points movements = do
     putStrLn $ "╔" ++ replicate (boxWidth + 2) '═' ++ "╗"
     
     let titulo = "BUG CRUSH"
@@ -130,25 +130,25 @@ renderHUD nome pontos movimentos = do
     
     putStrLn $ "║ " ++ padTit ++ titulo ++ padTit ++ "  ║" 
     putStrLn $ "╠" ++ replicate (boxWidth + 2) '═' ++ "╣"
-    putStrLn $ formatLine "Jogador: " nome
-    putStrLn $ formatLine "Pontos:  " (show pontos)
-    putStrLn $ formatLine "Movimentos Restantes: " (show movimentos) 
+    putStrLn $ formatLine "Jogador: " name
+    putStrLn $ formatLine "Pontos:  " (show points)
+    putStrLn $ formatLine "Movimentos Restantes: " (show movements) 
     putStrLn $ "╚" ++ replicate (boxWidth + 2) '═' ++ "╝"
     putStrLn ""
 
 --7. Tela de fim de jogo
 gameOverScreen :: String -> Int -> IO ()
-gameOverScreen nome pontos = do
+gameOverScreen name points = do
     clearScreen
     putStrLn "╔═══════════════════════════════════╗"
     putStrLn "║             FIM DE JOGO           ║"
     putStrLn "╚═══════════════════════════════════╝"
-    putStrLn (" Jogador: " ++ nome)
-    putStrLn (" Pontuação final: " ++ show pontos)
+    putStrLn (" Jogador: " ++ name)
+    putStrLn (" Pontuação final: " ++ show points)
     putStrLn ""
     
     -- Lógica de vitória ou de derrota
-    if pontos >= 500
+    if points >= 500
         then putStrLn "      PARABÉNS! VOCÊ VENCEU!    "
         else putStrLn "      QUE PENA! VOCÊ PERDEU.    "
         
